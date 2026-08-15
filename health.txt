@@ -1,0 +1,25 @@
+1. Check node version
+    node -v
+
+2. Check npm version
+    npm  -v
+
+3. Check if nest cli is installed 
+    nest -help
+
+3. Download nest cli globally
+    npm i -g @nestjs/cli
+
+4. Create a backend project
+    nest new ecommerce-backend
+
+5. cd ecommerce-backend
+    npm run start:dev to start a project in development mode
+
+6. Generate a resource using nest cli
+    nest generate resource ./common/health
+
+7. Install packages
+    npm i @nestjs/config, class-validator, class-transformer, helmet
+
+8. 
