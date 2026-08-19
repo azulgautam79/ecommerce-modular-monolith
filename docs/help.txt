@@ -20,6 +20,8 @@
     nest generate resource ./common/health
 
 7. Install packages
-    npm i @nestjs/config, class-validator, class-transformer, helmet
+    npm i @nestjs/config, class-validator, class-transformer, helmet, drizzle-orm, pg
+    npm i -D drizzle-kit
 
-8. 
+8. Nest CLI to generate users module
+    nest generate resource ./modules/users

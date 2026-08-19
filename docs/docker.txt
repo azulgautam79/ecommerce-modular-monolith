@@ -1,0 +1,7 @@
+1. Run a container
+    docker compose up -d
+
+2. Check running containers
+    docker compose ps
+
+3. 
