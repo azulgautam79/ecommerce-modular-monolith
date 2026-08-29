@@ -1,12 +1,16 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, Res } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { LoginDto } from './dto/login.dto';
-import { AuthResponseDto } from './dto/auth-response.dto';
 import ms from 'ms'
 import { ConfigService } from '@nestjs/config';
 import type { Request, Response } from 'express';
+import { AuthResult } from './auth.service';
+import { RefreshAuthGuard } from './guards/refresh-auth.guard';
+import { AuthGuard } from '@nestjs/passport';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import type { AuthenticatedRequest } from './types/authenticated-request.types';
 /**
  *! Auth Controller
  */
@@ -20,35 +24,66 @@ export class AuthController {
     ) { }
 
     /**
-   *! Register/ SignUp User
-   */
+       *! Register / Sign Up User
+       */
     @Post('register')
-    @HttpCode(201)
+    @HttpCode(HttpStatus.CREATED)
     @ApiOperation({
         summary: 'Register a new user',
         description: 'Creates a new user account',
     })
     @ApiResponse({
-        status: 201,
+        status: HttpStatus.CREATED,
         description: 'User successfully registered',
-        type: String,
+        type: AuthResult,
     })
     @ApiResponse({
-        status: 400,
-        description: 'Bad Request. Validation failed or user already exists',
+        status: HttpStatus.CONFLICT,
+        description: 'An account with this email already exists',
     })
     @ApiResponse({
-        status: 500,
-        description: 'Internal Server Error',
+        status: HttpStatus.BAD_REQUEST,
+        description: 'Validation failed',
     })
     @ApiResponse({
-        status: 429,
+        status: HttpStatus.TOO_MANY_REQUESTS,
         description: 'Too Many Requests',
     })
     async register(
         @Body() dto: RegisterDto,
-    ) {
-        return this.authService.register(dto);
+        @Res({ passthrough: true }) res: Response,
+    ): Promise<AuthResult> {
+        const {
+            accessToken,
+            refreshToken,
+            user,
+        } = await this.authService.register(dto);
+
+        const refreshTokenExpiresIn =
+            this.configService.getOrThrow<string>(
+                'REFRESH_TOKEN_EXPIRES_IN',
+            );
+
+        const ttl = Number(ms(refreshTokenExpiresIn));
+
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure:
+                this.configService.get<string>('NODE_ENV') ===
+                'production',
+            sameSite:
+                this.configService.get<string>('NODE_ENV') ===
+                    'production'
+                    ? 'none'
+                    : 'lax',
+            path: '/',
+            maxAge: ttl,
+        });
+
+        return {
+            accessToken,
+            user,
+        };
     }
 
     /**
@@ -65,7 +100,7 @@ export class AuthController {
     @ApiResponse({
         status: 200,
         description: 'User successfully logged in',
-        type: AuthResponseDto,
+        type: AuthResult,
     })
     @ApiResponse({
         status: 401,
@@ -78,7 +113,7 @@ export class AuthController {
     async login(
         @Body() loginDto: LoginDto,
         @Res({ passthrough: true }) res: Response,
-    ): Promise<AuthResponseDto> {
+    ): Promise<AuthResult> {
         const { accessToken, refreshToken, user } =
             await this.authService.login(loginDto);
 
@@ -99,5 +134,65 @@ export class AuthController {
             accessToken,
             user,
         };
+    }
+
+    //! Get Me
+    @Get("me")
+    @UseGuards(JwtAuthGuard)
+    me(
+        @Req() req: AuthenticatedRequest,
+    ) {
+        return req.user;
+    }
+
+    @Get("google")
+    @UseGuards(AuthGuard("google"))
+    googleLogin() {
+        // Passport redirects to Google
+    }
+
+    @Get("google/callback")
+    @UseGuards(AuthGuard("google"))
+    async googleCallback(
+        @Req() req: Request,
+        @Res() res: Response,
+    ) {
+        const result =
+            await this.authService.oauthLogin(req.user);
+
+        // set refresh token cookie
+        // redirect frontend
+    }
+
+    @Get("github")
+    @UseGuards(AuthGuard("github"))
+    githubLogin() { }
+
+    @Get("github/callback")
+    @UseGuards(AuthGuard("github"))
+    async githubCallback(
+        @Req() req: Request,
+        @Res() res: Response,
+    ) {
+        const result =
+            await this.authService.oauthLogin(req.user);
+
+        // set cookie
+        // redirect frontend
+    }
+
+
+
+    @UseGuards(RefreshAuthGuard)
+    @Post("refresh")
+    async refresh(
+        @Req() req: Request,
+        @Res({ passthrough: true }) res: Response,
+    ) {
+        const user = req.user;
+
+        const refreshToken = req.cookies.refreshToken;
+
+        return this.authService.refresh(user, refreshToken);
     }
 }

@@ -1,27 +1,20 @@
 
-import { neon } from '@neondatabase/serverless'
-import { drizzle } from 'drizzle-orm/neon-http'
-
+import { Provider } from '@nestjs/common';
+import { Pool } from 'pg';
+import { drizzle } from 'drizzle-orm/node-postgres'
 import * as schema from './schema';
 import { ConfigService } from '@nestjs/config';
+import { DRIZZLE_CLIENT } from './database.types';
 
-export const DATABASE = Symbol('DATABASE');
 
-export const databaseProvider = {
-    provide: DATABASE,
+export const databaseProvider:Provider = {
+    provide: DRIZZLE_CLIENT,
     inject: [ConfigService],
-
     useFactory: (configService: ConfigService) => {
-        const databaseUrl = configService.getOrThrow<string>(
-            'database.url',
-        );
+        const connectionString = configService.getOrThrow<string>('DATABASE_URL')
 
-        const sql = neon(databaseUrl);
+        const pool = new Pool({ connectionString })
 
-        return drizzle(sql, {
-            schema,
-        });
-    },
+        return drizzle(pool, { schema })
+    }
 };
-
-export type Database = ReturnType<typeof databaseProvider.useFactory>;

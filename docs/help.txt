@@ -25,3 +25,49 @@
 
 8. Nest CLI to generate users module
     nest generate resource ./modules/users
+
+Step 1 — JWT authentication
+
+JwtPayload
+JwtStrategy
+JwtAuthGuard
+/auth/me
+
+Step 2 — Refresh authentication
+
+RefreshStrategy
+RefreshAuthGuard
+/auth/refresh
+refresh-token rotation
+/auth/logout
+
+Step 3 — RBAC
+
+UserRole
+@Roles()
+RolesGuard
+protect an admin endpoint
+
+Step 4 — Google
+
+GoogleStrategy
+Google callback
+OAuth account creation/linking
+token issuance
+
+Step 5 — GitHub
+
+GithubStrategy
+GitHub callback
+account creation/linking
+token issuance
+
+Step 6 — Harden the whole auth system
+
+CSRF considerations for cookie-based refresh
+OAuth state
+rate limiting
+account linking rules
+token rotation/reuse detection
+logout/revocation
+frontend redirect handling

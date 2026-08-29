@@ -38,14 +38,5 @@ export class RegisterDto {
     })
     @IsString()
     @Length(1, 100)
-    firstName!: string;
-
-
-    @ApiProperty({
-        description: 'Last Name',
-        example: 'Gautam',
-    })
-    @IsString()
-    @Length(1, 100)
-    lastName!: string;
+    userName!: string;
 }
