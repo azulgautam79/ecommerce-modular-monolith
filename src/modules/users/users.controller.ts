@@ -3,6 +3,7 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { DeleteManyUsersDto } from './dto/delete-many-users.dto';
 
 /**
  *! Users API controller
@@ -124,4 +125,14 @@ export class UsersController {
   remove(@Param('id') id: string) {
     return this.usersService.remove(+id);
   }
+
+  @Delete('many')
+  async deleteManyUsers(
+    @Body() deleteManyUsersDto: DeleteManyUsersDto,
+  ) {
+    return this.usersService.deleteManyUsers(
+      deleteManyUsersDto.userIds,
+    );
+  }
+
 }

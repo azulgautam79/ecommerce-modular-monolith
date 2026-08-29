@@ -1,0 +1,13 @@
+import { Injectable } from "@nestjs/common";
+
+
+@Injectable()
+export class EmailService {
+    async sendVerificationEmail(
+        email: string,
+        userName: string,
+        verificationUrl: string,
+    ) {
+        // send email
+    }
+}

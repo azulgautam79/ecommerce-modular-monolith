@@ -2,8 +2,6 @@
 export * from './users.schema'
 export * from './profileInfo.schema'
 export * from './addresses.schema'
-export * from './accounts.schema'
-export * from './sessions.schema'
 
 // Ecommerce Schemas
 export * from './carts.schema'
