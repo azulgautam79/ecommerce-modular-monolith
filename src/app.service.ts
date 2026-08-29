@@ -10,7 +10,7 @@ export class AppService {
 
     return {
       api: baseUrl,
-      health: `${baseUrl}/api/health`,
+      health: `${baseUrl}/api/v1/health`,
       scalar: `${baseUrl}/api/docs`,
       openapi: `${baseUrl}/api/openapi.json`,
     };
